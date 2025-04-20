@@ -3,6 +3,8 @@
 
 #include<string>
 #include<vector>
+#include <string>
+#include <sys/socket.h>
 
 class channel;
 
@@ -17,6 +19,12 @@ public:
 
 	void SetFd(int fd){Fd = fd;} //-> setter for fd
 	void setIpAdd(std::string ipadd){IPadd = ipadd;} //-> setter for ipadd
+	void send_msg(std::string msg)
+	{
+		//-> send message to client
+		std::cout << "Sending message to client: " << msg << std::endl;
+		send(Fd, msg.c_str(), msg.length(), 0);
+	}
 };
 
 
