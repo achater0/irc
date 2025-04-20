@@ -22,9 +22,9 @@ private:
 	std::vector<channel> channels; //-> vector of channels
 public:
 	Server(){SerSocketFd = -1;} //-> default constructor
-	void add_channel(std::string name) //-> add channel
+	void add_channel(std::string name,std::string key, int i) //-> add channel
 	{
-		channel c(name);
+		channel c(name,key, i);
 		channels.push_back(c);
 	}
 	void ServerInit(); //-> server initialization
@@ -49,6 +49,7 @@ public:
 	{
 		for(size_t i = 0; i < channels.size();i++)
 		{
+			std::cout << "channel name: " << channel_name <<"?" << std::endl;
 			if(channels[i].GetName() == channel_name)
 				return 1;
 		}
@@ -76,6 +77,41 @@ public:
 			{
 				channels[i].add_client(client);
 				return;
+			}
+		}
+	}
+	int channel_has_key(std::string channel_name)
+	{
+		for(size_t i = 0; i < channels.size();i++)
+		{
+			if(channels[i].GetName() == channel_name)
+			{
+				if(channels[i].GetKey() != "")
+					return 1;
+				else
+					return 0;
+			}
+		}
+		return 0;
+	}
+	std ::string get_channel_key(std::string channel_name)
+	{
+		for(size_t i = 0; i < channels.size();i++)
+		{
+			if(channels[i].GetName() == channel_name)
+			{
+				return channels[i].GetKey();
+			}
+		}
+		return "";
+	}
+	void remove_client_from_channels(Client *client)
+	{
+		for(size_t i = 0; i < channels.size();i++)
+		{
+			if(channels[i].client_exist(client))
+			{
+				channels[i].remove_client(client);
 			}
 		}
 	}

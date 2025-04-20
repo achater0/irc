@@ -11,6 +11,9 @@ int parse::cmd_lenght(std::string str)
 
 void parse::execute_join(std::string arg, Server *server, Client *client)
 {
+    // remove new line
+    if(arg[arg.length() - 1] == '\n')
+        arg = arg.substr(0, arg.length() - 1);
     std::string ch;
     std::string key;
     int i = 0;
@@ -19,9 +22,10 @@ void parse::execute_join(std::string arg, Server *server, Client *client)
     ch = arg.substr(0, i);
     if(arg[i])
         key = arg.substr(i + 1);
-    if(key == "0")
+    if(arg == "0")
     {
-        // remove client from all channels
+        server->remove_client_from_channels(client);
+        return;
     }
     std::stringstream ss(ch);
     std::string token;
@@ -38,12 +42,12 @@ void parse::execute_join(std::string arg, Server *server, Client *client)
     int j = 0;
     while (j < channels.size())
     {
-        if (channels[j][0] != '#')
+        if (channels[j][0] != '#' && channels[j][0] != '&')
         {
             client->send_msg("ERR_NOSUCHCHANNEL\n");
             std::cout << "ERR_NOSUCHCHANNEL" << std::endl;
         }
-        else if (channels[j][0] == '#')
+        else
         {
             if(server->channel_exist(channels[j]))
             {
@@ -54,8 +58,21 @@ void parse::execute_join(std::string arg, Server *server, Client *client)
                 }
                 else
                 {
-                   std :: cout << "add clint to channel" << std::endl;
-                   if () // check if has key
+                   std :: cout << "add client to channel" << std::endl;
+                   if (server->channel_has_key(channels[j]))
+                   {
+                        std::string k = server->get_channel_key(channels[j]);
+                        if (j >= keys.size() || keys[j] != k)
+                        {
+                            client->send_msg("ERR_BADCHANNELKEY\n");
+                            std::cout << "ERR_BADCHANNELKEY" << std::endl;
+                        }
+                        else
+                        {
+                            server->add_client_to_channel(channels[j], client);
+                            std::cout << "Client added to channel" << std::endl;
+                        }
+                   }
                    else
                    {
                         server->add_client_to_channel(channels[j], client);
@@ -64,9 +81,16 @@ void parse::execute_join(std::string arg, Server *server, Client *client)
             }
             else
             {
-                server->add_channel(channels[j]);
+                if (!keys.empty() &&  j < keys.size())
+                {
+                    server->add_channel(channels[j], keys[j], 1);
+                }
+                else
+                {
+                    server->add_channel(channels[j], "", 0);
+                }
                 server->add_client_to_channel(channels[j], client);
-                std::cout << "Channel created" << std::endl;
+                std::cout << "Channel created" << channels[j] << std::endl;
             }
         }
         j++;
